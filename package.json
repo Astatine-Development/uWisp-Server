@@ -1,0 +1,37 @@
+{
+  "name": "uwisp-server",
+  "version": "1.0.0",
+  "description": "A updated, faster, lower latency wisp server written using uwebsockets.js for max peformance.",
+  "main": "src/index.mjs",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Astatine-Development/uWisp-Server.git"
+  },
+  "keywords": [
+    "Wisp",
+    "Bare",
+    "Proxy",
+    "Unblocker",
+    "Unblock",
+    "Bypass",
+    "Network",
+    "TCP",
+    "Websockets",
+    "Websocket",
+    "Networking",
+    "Network"
+  ],
+  "author": "ohonbob",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/Astatine-Development/uWisp-Server/issues"
+  },
+  "homepage": "https://github.com/Astatine-Development/uWisp-Server#readme",
+  "dependencies": {
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.44.0"
+  }
+}
