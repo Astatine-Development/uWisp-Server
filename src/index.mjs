@@ -162,8 +162,8 @@ uwsServer.ws('/*', {
 
                         client.on("connect", () => {
                            // console.log(`[Info]: Connected to ${host}:${
-                                connectFrame.port
-                            } via UDP`);
+                                //connectFrame.port
+                            //} via UDP`);
                             ws.send(continuePacketMaker({
                                 streamID: wispFrame.streamID
                             }, 127), true);
