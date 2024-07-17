@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A updated, faster, lower latency wisp server written using uwebsockets.js for max peformance.",
   "main": "src/index.mjs",
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
     "start": "node src/index.mjs"
   },
