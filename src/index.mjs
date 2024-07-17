@@ -162,7 +162,7 @@ uwsServer.ws('/*', {
 
                         client.on("connect", () => {
                            // console.log(`[Info]: Connected to ${host}:${
-                                //connectFrame.port
+                               // connectFrame.port
                             //} via UDP`);
                             ws.send(continuePacketMaker({
                                 streamID: wispFrame.streamID
@@ -227,10 +227,10 @@ uwsServer.ws('/*', {
 
             if (wispFrame.type === CONNECT_TYPE.CLOSE) {
                // console.log(`[Info]: Client decided to terminate streamID ${
-                    wispFrame.streamID
-                } with reason ${
-                    wispFrame.payload[0]
-                }`);
+                    //wispFrame.streamID
+                //} with reason ${
+                    //wispFrame.payload[0]
+                //}`);
                 const stream = ws.connections.get(wispFrame.streamID);
                 if (stream && stream.client) {
                     if (stream.client instanceof net.Socket) {
@@ -275,4 +275,3 @@ uwsServer.ws('/*', {
 });
 
 export { uwsServer };
-
