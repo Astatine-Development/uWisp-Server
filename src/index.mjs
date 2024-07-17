@@ -66,30 +66,30 @@ uwsServer.ws('/*', {
     idleTimeout: 32,
     open: (ws) => {
         ws.connections = new Map();
-        console.log("[Info]: WebSocket connected");
+       // console.log("[Info]: WebSocket connected");
         ws.send(continuePacketMaker({
             streamID: 0
         }, 127), true, true);
     },
     message: (ws, message, isBinary) => {
         if (!isBinary) {
-            console.log("Info]: Received non-binary message, ignoring");
+           // console.log("Info]: Received non-binary message, ignoring");
             return;
         }
         if (ws.closed) {
-            console.log("[Info]: WebSocket is closed, ignoring message");
+           // console.log("[Info]: WebSocket is closed, ignoring message");
             return;
         }
 
         const wispFrame = wispFrameParser(Buffer.from(message));
         // Used for debugging.
-        // console.log("Parsed WISP frame:", wispFrame);
+        //// console.log("Parsed WISP frame:", wispFrame);
 
         try {
             if (wispFrame.type === CONNECT_TYPE.CONNECT) {
                 const connectFrame = connectPacketParser(wispFrame.payload);
                 // Used for debugging.
-                // console.log("Parsed CONNECT frame:", connectFrame);
+                //// console.log("Parsed CONNECT frame:", connectFrame);
 
                 if (connectFrame.streamType === STREAM_TYPE.TCP) {
                     const client = new net.Socket();
@@ -99,7 +99,7 @@ uwsServer.ws('/*', {
 
                     client.on("connect", () => {
                         // Used for debugging.
-                        // console.log(`Connected to ${connectFrame.hostname}:${connectFrame.port}`);
+                        //// console.log(`Connected to ${connectFrame.hostname}:${connectFrame.port}`);
                         ws.send(continuePacketMaker({
                             streamID: wispFrame.streamID
                         }, 127), true);
@@ -107,7 +107,7 @@ uwsServer.ws('/*', {
 
                     client.on("data", (data) => {
                         // Used for debugging.
-                        // console.log(`Received data from ${connectFrame.hostname}:${connectFrame.port}`);
+                        //// console.log(`Received data from ${connectFrame.hostname}:${connectFrame.port}`);
                         ws.send(dataPacketMaker(wispFrame, data), true);
                     });
 
@@ -126,7 +126,7 @@ uwsServer.ws('/*', {
 
                     client.on("close", () => {
                         // Used for debugging.
-                        // console.log(`Connection closed to ${connectFrame.hostname}:${connectFrame.port}`);
+                        //// console.log(`Connection closed to ${connectFrame.hostname}:${connectFrame.port}`);
                         if (ws.readyState === ws.OPEN) {
                             try {
                                 ws.send(closePacketMaker(wispFrame, 0x02), true);
@@ -161,7 +161,7 @@ uwsServer.ws('/*', {
                         ws.connections.set(wispFrame.streamID, {client, buffer: 127});
 
                         client.on("connect", () => {
-                            console.log(`[Info]: Connected to ${host}:${
+                           // console.log(`[Info]: Connected to ${host}:${
                                 connectFrame.port
                             } via UDP`);
                             ws.send(continuePacketMaker({
@@ -171,7 +171,7 @@ uwsServer.ws('/*', {
 
                         client.on("message", (data, rinfo) => {
                             // Used for debugging.
-                            // console.log(`Received UDP data from ${rinfo.address}:${rinfo.port}`);
+                            //// console.log(`Received UDP data from ${rinfo.address}:${rinfo.port}`);
                             ws.send(dataPacketMaker(wispFrame, data), true);
                         });
 
@@ -189,7 +189,7 @@ uwsServer.ws('/*', {
                         });
 
                         client.on("close", () => {
-                            console.log("[Info]: UDP connection closed");
+                           // console.log("[Info]: UDP connection closed");
                             if (ws.readyState === ws.OPEN) {
                                 try {
                                     ws.send(closePacketMaker(wispFrame, 0x02), true);
@@ -207,7 +207,7 @@ uwsServer.ws('/*', {
                 const stream = ws.connections.get(wispFrame.streamID);
                 if (stream && stream.client) {
                     // Used for debugging.
-                    // console.log(`Forwarding data to streamID ${wispFrame.streamID}`);
+                    //// console.log(`Forwarding data to streamID ${wispFrame.streamID}`);
                     if (stream.client instanceof net.Socket) {
                         stream.client.write(wispFrame.payload);
                     } else if (stream.client instanceof dgram.Socket) {
@@ -226,7 +226,7 @@ uwsServer.ws('/*', {
             }
 
             if (wispFrame.type === CONNECT_TYPE.CLOSE) {
-                console.log(`[Info]: Client decided to terminate streamID ${
+               // console.log(`[Info]: Client decided to terminate streamID ${
                     wispFrame.streamID
                 } with reason ${
                     wispFrame.payload[0]
@@ -258,10 +258,10 @@ uwsServer.ws('/*', {
     },
     close: (ws, code, message) => {
         if (ws.closed) {
-            console.log("[Info]: WebSocket is already closed");
+           // console.log("[Info]: WebSocket is already closed");
             return;
         }
-        console.log(`[Info]: WebSocket connection closed with code ${code} and message: ${message}`);
+       // console.log(`[Info]: WebSocket connection closed with code ${code} and message: ${message}`);
         for (const {client}
         of ws.connections.values()) {
             if (client instanceof net.Socket) {
@@ -275,3 +275,4 @@ uwsServer.ws('/*', {
 });
 
 export { uwsServer };
+
