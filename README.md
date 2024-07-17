@@ -10,5 +10,7 @@
 - Higher req/sec and overall scaliblity
 - Faster network speeds (Close to native when using libcurl)
 
+## Full credit for the OG wisp server node at [MercuryWorkshop Github](https://github.com/MercuryWorkshop/)
+
 Note: Still in 'beta' and there may be some issues.
 *Golang version soon mabye?*
