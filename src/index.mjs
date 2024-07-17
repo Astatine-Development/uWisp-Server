@@ -66,30 +66,23 @@ uwsServer.ws('/*', {
     idleTimeout: 32,
     open: (ws) => {
         ws.connections = new Map();
-       // console.log("[Info]: WebSocket connected");
         ws.send(continuePacketMaker({
             streamID: 0
         }, 127), true, true);
     },
     message: (ws, message, isBinary) => {
         if (!isBinary) {
-           // console.log("Info]: Received non-binary message, ignoring");
             return;
         }
         if (ws.closed) {
-           // console.log("[Info]: WebSocket is closed, ignoring message");
             return;
         }
 
         const wispFrame = wispFrameParser(Buffer.from(message));
-        // Used for debugging.
-        //// console.log("Parsed WISP frame:", wispFrame);
 
         try {
             if (wispFrame.type === CONNECT_TYPE.CONNECT) {
                 const connectFrame = connectPacketParser(wispFrame.payload);
-                // Used for debugging.
-                //// console.log("Parsed CONNECT frame:", connectFrame);
 
                 if (connectFrame.streamType === STREAM_TYPE.TCP) {
                     const client = new net.Socket();
@@ -98,44 +91,37 @@ uwsServer.ws('/*', {
                     ws.connections.set(wispFrame.streamID, {client, buffer: 127});
 
                     client.on("connect", () => {
-                        // Used for debugging.
-                        //// console.log(`Connected to ${connectFrame.hostname}:${connectFrame.port}`);
                         ws.send(continuePacketMaker({
                             streamID: wispFrame.streamID
                         }, 127), true);
                     });
 
                     client.on("data", (data) => {
-                        // Used for debugging.
-                        //// console.log(`Received data from ${connectFrame.hostname}:${connectFrame.port}`);
                         ws.send(dataPacketMaker(wispFrame, data), true);
                     });
 
                     client.on("error", (error) => {
-                        // Used for debugging.
-                        // console.error(`Error in connection to ${connectFrame.hostname}:${connectFrame.port}:`, error);
                         if (ws.readyState === ws.OPEN) {
                             try {
                                 ws.send(closePacketMaker(wispFrame, 0x03), true);
                                 ws.connections.delete(wispFrame.streamID);
                             } catch (error) {
-                                console.error('[Error]: Error sending WebSocket message (Libcurl may fix this)');
+                                // Handle error
                             }
                         }
                     });
 
                     client.on("close", () => {
-                        // Used for debugging.
-                        //// console.log(`Connection closed to ${connectFrame.hostname}:${connectFrame.port}`);
                         if (ws.readyState === ws.OPEN) {
                             try {
                                 ws.send(closePacketMaker(wispFrame, 0x02), true);
                                 ws.connections.delete(wispFrame.streamID);
                             } catch (error) {
-                                console.error('[Error]: Error sending WebSocket message (Libcurl may fix this)');
+                                // Handle error
                             }
                         }
                     });
+
                 } else if (connectFrame.streamType === STREAM_TYPE.UDP) {
                     (async () => {
                         let iplevel = net.isIP(connectFrame.hostname);
@@ -146,7 +132,6 @@ uwsServer.ws('/*', {
                                 host = (await dns.resolve(connectFrame.hostname))[0];
                                 iplevel = net.isIP(host);
                             } catch (e) {
-                                console.error("[Error]: Failure while trying to resolve hostname " + connectFrame.hostname + " with error: " + e);
                                 return;
                             }
                         }
@@ -161,41 +146,34 @@ uwsServer.ws('/*', {
                         ws.connections.set(wispFrame.streamID, {client, buffer: 127});
 
                         client.on("connect", () => {
-                           // console.log(`[Info]: Connected to ${host}:${
-                               // connectFrame.port
-                            //} via UDP`);
                             ws.send(continuePacketMaker({
                                 streamID: wispFrame.streamID
                             }, 127), true);
                         });
 
                         client.on("message", (data, rinfo) => {
-                            // Used for debugging.
-                            //// console.log(`Received UDP data from ${rinfo.address}:${rinfo.port}`);
                             ws.send(dataPacketMaker(wispFrame, data), true);
                         });
 
                         client.on("error", (error) => {
-                            console.error("[Error]: UDP error:", error);
                             if (ws.readyState === ws.OPEN) {
                                 try {
                                     ws.send(closePacketMaker(wispFrame, 0x3), true);
                                     ws.connections.delete(wispFrame.streamID);
                                 } catch (error) {
-                                    console.error('[Error]: Error sending WebSocket message (Libcurl may fix this)');
+                                    // Handle error
                                 }
                             }
                             client.close();
                         });
 
                         client.on("close", () => {
-                           // console.log("[Info]: UDP connection closed");
                             if (ws.readyState === ws.OPEN) {
                                 try {
                                     ws.send(closePacketMaker(wispFrame, 0x02), true);
                                     ws.connections.delete(wispFrame.streamID);
                                 } catch (error) {
-                                    console.error('[Error]: Error sending WebSocket message (Libcurl may fix this)');
+                                    // Handle error
                                 }
                             }
                         });
@@ -206,31 +184,22 @@ uwsServer.ws('/*', {
             if (wispFrame.type === CONNECT_TYPE.DATA) {
                 const stream = ws.connections.get(wispFrame.streamID);
                 if (stream && stream.client) {
-                    // Used for debugging.
-                    //// console.log(`Forwarding data to streamID ${wispFrame.streamID}`);
                     if (stream.client instanceof net.Socket) {
                         stream.client.write(wispFrame.payload);
                     } else if (stream.client instanceof dgram.Socket) {
                         stream.client.send(wispFrame.payload);
                     }
-                    stream.buffer --;
+                    stream.buffer--;
                     if (stream.buffer === 0) {
                         stream.buffer = 127;
                         ws.send(continuePacketMaker(wispFrame, stream.buffer), true);
                     }
                 } else {
-                    console.error(`[Error]: No active connection found for streamID ${
-                        wispFrame.streamID
-                    }`);
+                    // Handle missing stream
                 }
             }
 
             if (wispFrame.type === CONNECT_TYPE.CLOSE) {
-               // console.log(`[Info]: Client decided to terminate streamID ${
-                    //wispFrame.streamID
-                //} with reason ${
-                    //wispFrame.payload[0]
-                //}`);
                 const stream = ws.connections.get(wispFrame.streamID);
                 if (stream && stream.client) {
                     if (stream.client instanceof net.Socket) {
@@ -242,11 +211,8 @@ uwsServer.ws('/*', {
                 ws.connections.delete(wispFrame.streamID);
             }
         } catch (e) {
-            console.error("[Error]: Error in WISP message handler:");
-            console.error(e);
             ws.end();
-            for (const {client}
-            of ws.connections.values()) {
+            for (const {client} of ws.connections.values()) {
                 if (client instanceof net.Socket) {
                     client.destroy();
                 } else if (client instanceof dgram.Socket) {
@@ -258,12 +224,9 @@ uwsServer.ws('/*', {
     },
     close: (ws, code, message) => {
         if (ws.closed) {
-           // console.log("[Info]: WebSocket is already closed");
             return;
         }
-       // console.log(`[Info]: WebSocket connection closed with code ${code} and message: ${message}`);
-        for (const {client}
-        of ws.connections.values()) {
+        for (const {client} of ws.connections.values()) {
             if (client instanceof net.Socket) {
                 client.destroy();
             } else if (client instanceof dgram.Socket) {
