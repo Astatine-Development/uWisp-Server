@@ -58,9 +58,9 @@ function dataPacketMaker(wispFrame, data) {
     ]);
 }
 
-const app = uWS.App();
+const uwsServer = uWS.App();
 
-app.ws('/*', {
+uwsServer.ws('/*', {
     compression: 0,
     maxPayloadLength: 16 * 1024 * 1024,
     idleTimeout: 32,
@@ -274,9 +274,4 @@ app.ws('/*', {
     }
 });
 
-const port = process.env.PORT || 9080;
-app.listen(port, (listenSocket) => {
-    if (listenSocket) {
-        console.log(`[Startup]: Server is listening on port ${port}`);
-    }
-});
+export { uwsServer };
