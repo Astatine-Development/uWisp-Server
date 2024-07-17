@@ -1,4 +1,5 @@
-# uWisp Server [WARNING: DO NOT USE FOR PRODUCTION ENVIORMENTS -- IT CURRENTLY HAS AN UNFIXED MEMORY LEAK]
+[WARNING: DO NOT USE FOR PRODUCTION ENVIORMENTS -- IT CURRENTLY HAS AN UNFIXED MEMORY LEAK]
+uWisp Server
 ## Drop in replacement for a faster version of [Wisp Server Node](https://github.com/MercuryWorkshop/wisp-server-node)
 
 ### Changes:
