@@ -32,26 +32,26 @@ function connectPacketParser(payload) {
     return {streamType, port, hostname};
 }
 
-function continuePacketMaker(wispFrame, queue) {
+function continuePacketMaker(streamID, queue) {
     const initialPacket = new DataView(new Uint8Array(9).buffer);
     initialPacket.setUint8(0, CONNECT_TYPE.CONTINUE);
-    initialPacket.setUint32(1, wispFrame.streamID, true);
+    initialPacket.setUint32(1, streamID, true);
     initialPacket.setUint32(5, queue, true);
     return initialPacket.buffer;
 }
 
-function closePacketMaker(wispFrame, reason) {
+function closePacketMaker(streamID, reason) {
     const closePacket = new DataView(new Uint8Array(9).buffer);
     closePacket.setUint8(0, CONNECT_TYPE.CLOSE);
-    closePacket.setUint32(1, wispFrame.streamID, true);
+    closePacket.setUint32(1, streamID, true);
     closePacket.setUint8(5, reason);
     return closePacket.buffer;
 }
 
-function dataPacketMaker(wispFrame, data) {
+function dataPacketMaker(streamID, data) {
     const dataPacketHeader = new DataView(new Uint8Array(5).buffer);
     dataPacketHeader.setUint8(0, CONNECT_TYPE.DATA);
-    dataPacketHeader.setUint32(1, wispFrame.streamID, true);
+    dataPacketHeader.setUint32(1, streamID, true);
     return Buffer.concat([
         Buffer.from(dataPacketHeader.buffer),
         data
@@ -90,21 +90,25 @@ uwsServer.ws('/*', {
 
                     ws.connections.set(wispFrame.streamID, {client, buffer: 127});
 
+                    let wispFrame_streamID = wispFrame.streamID;
+
                     client.on("connect", () => {
                         ws.send(continuePacketMaker({
-                            streamID: wispFrame.streamID
+                            streamID: wispFrame_streamID
                         }, 127), true);
                     });
 
+                    
+
                     client.on("data", (data) => {
-                        ws.send(dataPacketMaker(wispFrame, data), true);
+                        ws.send(dataPacketMaker(wispFrame_streamID, data), true);
                     });
 
                     client.on("error", (error) => {
                         if (ws.readyState === ws.OPEN) {
                             try {
-                                ws.send(closePacketMaker(wispFrame, 0x03), true);
-                                ws.connections.delete(wispFrame.streamID);
+                                ws.send(closePacketMaker(wispFrame_streamID, 0x03), true);
+                                ws.connections.delete(wispFrame_streamID);
                             } catch (error) {
                                 // Handle error
                             }
@@ -114,8 +118,8 @@ uwsServer.ws('/*', {
                     client.on("close", () => {
                         if (ws.readyState === ws.OPEN) {
                             try {
-                                ws.send(closePacketMaker(wispFrame, 0x02), true);
-                                ws.connections.delete(wispFrame.streamID);
+                                ws.send(closePacketMaker(wispFrame_streamID, 0x02), true);
+                                ws.connections.delete(wispFrame_streamID);
                             } catch (error) {
                                 // Handle error
                             }
