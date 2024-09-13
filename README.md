@@ -1,4 +1,4 @@
-# uWisp Server
+# uWisp Server (Do not use in prod, buggy and missing features/broken-ish)
 ## Drop in replacement for a faster version of [Wisp Server Node](https://github.com/MercuryWorkshop/wisp-server-node)
 
 ### Changes:
